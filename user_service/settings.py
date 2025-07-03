@@ -2,5 +2,7 @@ import os
 
 DATABASE_USERNAME = os.getenv("POSTGRES_USER")
 DATABASE_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-DATABASE_HOST = os.getenv("POSTGRES_HOST", "localhost")
+DATABASE_HOST = os.getenv("POSTGRES_HOST", "postgres")
 DATABASE_NAME = os.getenv("POSTGRES_DB")
+REDIS_URL = os.getenv("REDIS_URL")
+DATABASE_URL = os.getenv("DATABASE_URL")

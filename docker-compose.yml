@@ -1,4 +1,5 @@
 version: "3.9"
+
 services:
   redis:
     image: redis:latest
@@ -13,16 +14,30 @@ services:
       POSTGRES_DB: $POSTGRES_DB
     ports:
       - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "$POSTGRES_USER"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   user_service:
     build: ./user_service
     environment:
-      DATABASE_URL: postgresql://user:password@postgres/$POSTGRES_DB
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: $DATABASE_URL
+      REDIS_URL: $REDIS_URL
     ports:
       - "8000:8000"
     depends_on:
-      - redis
-      - postgres
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - .env
 
   task_service:
     build: ./task_service
@@ -30,3 +45,6 @@ services:
       - "8001:8000"
     depends_on:
       - user_service
+
+volumes:
+  postgres_data:
