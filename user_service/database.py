@@ -7,9 +7,10 @@ DATABASE_USER = config.DATABASE_USERNAME
 DATABASE_PASSWORD = config.DATABASE_PASSWORD
 DATABASE_HOST = config.DATABASE_HOST
 DATABASE_NAME = config.DATABASE_NAME
+DATABASE_URL = config.DATABASE_URL
 
 initial_database_url = (
-    f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}/{DATABASE_NAME}"
+    f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@postgres/{DATABASE_NAME}"
 )
 
 print(f"🔗 Connecting to: {initial_database_url}")

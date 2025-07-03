@@ -1,31 +1,41 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Dict
+import models, schemas, crud
+from database import SessionLocal, engine
+import redis
+import os
+from rq import Queue
+from sqlalchemy.orm import Session
+from worker import send_welcome_email
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-fake_db: Dict[int, dict] = {}
-id_counter = 1
+redis_conn = redis.from_url(os.getenv("REDIS_URL"))
+task_queue = Queue(connection=redis_conn)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 class User(BaseModel):
     name: str
     email: str
 
-@app.post("/users/", response_model=User)
-async def create_user(user: User):
-    global id_counter
-    if id_counter in fake_db:
-        raise HTTPException(status_code=400, detail="User already exists")
-    
-    user_data = user.model_dump()
-    user_data["id"] = id_counter
-    id_counter += 1
-    fake_db[id_counter] = user_data
-    return user_data
+@app.post("/users/", response_model=schemas.UserOut)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    new_user = crud.create_user(db, user)
+    task_queue.enqueue(send_welcome_email, new_user.email)
+    return new_user
 
-@app.get("/users/{user_id}", response_model=User)
-async def get_user(user_id: int):
-    if user_id not in fake_db:
+@app.get("/users/{user_id}", response_model=schemas.UserOut)
+def read_user(user_id: int, db: Session = Depends(get_db)):
+    db_user = crud.get_user(db, user_id)
+    if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
-    
-    return fake_db[user_id]
+    return db_user
