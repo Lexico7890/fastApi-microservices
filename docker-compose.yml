@@ -1,9 +1,28 @@
 version: "3.9"
 services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+    ports:
+      - "5432:5432"
   user_service:
     build: ./user_service
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres/$POSTGRES_DB
+      REDIS_URL: redis://redis:6379
     ports:
       - "8000:8000"
+    depends_on:
+      - redis
+      - postgres
 
   task_service:
     build: ./task_service

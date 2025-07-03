@@ -1,0 +1,6 @@
+import os
+
+DATABASE_USERNAME = os.getenv("POSTGRES_USER")
+DATABASE_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+DATABASE_HOST = os.getenv("POSTGRES_HOST", "localhost")
+DATABASE_NAME = os.getenv("POSTGRES_DB")

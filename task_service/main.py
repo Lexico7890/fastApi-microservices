@@ -35,5 +35,7 @@ async def create_task(task: Task):
     return task_data
 
 @app.get("/tasks/", response_model=list[Task])
-def get_tasks():
+async def get_tasks():
+    if not tasks:
+        raise HTTPException(status_code=404, detail="No tasks found")
     return tasks
